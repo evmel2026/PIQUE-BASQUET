@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="app-version" content="3.3.0">
+<meta name="app-version" content="3.3.1">
 <meta name="theme-color" content="#07A4B3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -3753,7 +3753,7 @@ function loginSheet() {
       try { const r = await fn(em, pw); closeSheet(); toast(ok(r)); render(); } catch (x) { toast(/Invalid login/i.test(x.message || '') ? 'Email o contraseña incorrectos' : (x.message || 'No se pudo ingresar'), true); } };
     $('#lgOk', s).onclick = () => go((a, b) => Sync.login(a, b), st => st ? `Hola ${st.name || st.email}: ${st.role === 'admin' ? 'entraste como administración' : 'ya podés cargar' + (venueById(st.venue) ? ' en ' + venueById(st.venue).name : '')}` : 'Entraste, pero tu email no está en el personal de este torneo');
     $('#lgNew', s).onclick = () => go((a, b) => Sync.signup(a, b), d => d && d.session ? 'Contraseña creada' : 'Contraseña creada. Si te pide confirmar, revisá tu email.');
-    $('#lgP', s).onkeydown = ev => ev.key === 'Enter' && $('#lgOk', s).click(); setTimeout(() => $('#lgE', s).focus(), 60);
+    $('#lgP', s).onkeydown = ev => { if (ev.key === 'Enter') $('#lgOk', s).click(); }; setTimeout(() => $('#lgE', s).focus(), 60);
   });
 }
 function unlockSheet() {
@@ -3766,7 +3766,7 @@ function unlockSheet() {
       if (o) { setRole({ r: 'op', h, op: o.id }); closeSheet(); toast('Hola ' + o.name + ': ya podés cargar' + (venueById(o.venue) ? ' en ' + venueById(o.venue).name : '')); render(); return; }
       toast('PIN incorrecto', true); $('#ulP', s).value = '';
     };
-    $('#ulOk', s).onclick = go; $('#ulP', s).onkeydown = e => e.key === 'Enter' && go(); setTimeout(() => $('#ulP', s).focus(), 60);
+    $('#ulOk', s).onclick = go; $('#ulP', s).onkeydown = e => { if (e.key === 'Enter') go(); }; setTimeout(() => $('#ulP', s).focus(), 60);
   });
 }
 function loadScript(src) { return new Promise((res, rej) => { if ($$('script').some(s => s.src === src)) return res(); const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('No se pudo cargar ' + src)); document.head.appendChild(s); }); }
