@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="app-version" content="3.6.0">
+<meta name="app-version" content="3.6.1">
 <meta name="theme-color" content="#0B2328">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -11,17 +11,17 @@
 <meta name="description" content="PIQUE · básquet en vivo. Torneo activo: Maxibásquet Cutral-Có 2026 — resultados, estadísticas, jugadas 3D y votación del público en tiempo real.">
 <meta name="apple-mobile-web-app-title" content="PIQUE">
 <meta name="application-name" content="PIQUE">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="pq-manifest.webmanifest">
+<link rel="icon" type="image/png" href="pq-favicon.png">
+<link rel="apple-touch-icon" href="pq-apple-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="PIQUE">
 <meta property="og:locale" content="es_AR">
 <meta property="og:title" content="PIQUE · Maxibásquet Cutral-Có 2026">
 <meta property="og:description" content="Básquet en vivo: seguí el torneo con resultados, estadísticas, jugadas 3D y votación del público.">
 <meta property="og:url" content="https://evmel2026.github.io/PIQUE-BASQUET/">
-<meta property="og:image" content="https://evmel2026.github.io/PIQUE-BASQUET/og-image.jpg">
-<meta property="og:image:secure_url" content="https://evmel2026.github.io/PIQUE-BASQUET/og-image.jpg">
+<meta property="og:image" content="https://evmel2026.github.io/PIQUE-BASQUET/pq-preview.jpg">
+<meta property="og:image:secure_url" content="https://evmel2026.github.io/PIQUE-BASQUET/pq-preview.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -29,7 +29,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="PIQUE · Maxibásquet Cutral-Có 2026">
 <meta name="twitter:description" content="Básquet en vivo: resultados, estadísticas, jugadas 3D y votación del público.">
-<meta name="twitter:image" content="https://evmel2026.github.io/PIQUE-BASQUET/og-image.jpg">
+<meta name="twitter:image" content="https://evmel2026.github.io/PIQUE-BASQUET/pq-preview.jpg">
 <title>PIQUE · Maxibásquet Cutral-Có 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -716,7 +716,7 @@ body.p3-open{overflow:hidden}
 </style>
 </head>
 <body>
-<div id="splash" aria-hidden="true"><img class="sp-ic" src="icon-512.png" alt="" onerror="this.style.visibility='hidden'"><div class="sp-t">básquet en vivo</div><div class="sp-tor"><small>Torneo activo</small><b>Maxibásquet Cutral-Có 2026</b></div><div class="sp-load"><i></i></div><div class="sp-by">Plataforma MLF</div></div>
+<div id="splash" aria-hidden="true"><img class="sp-ic" id="spIc" src="pq-icon-512.png" alt=""><div class="sp-t">básquet en vivo</div><div class="sp-tor"><small>Torneo activo</small><b>Maxibásquet Cutral-Có 2026</b></div><div class="sp-load"><i></i></div><div class="sp-by">Plataforma MLF</div></div>
 <canvas id="bgfx" aria-hidden="true"></canvas>
 <header class="top"><div class="top-in">
   <a class="brand" href="#/inicio" aria-label="Inicio">
@@ -2732,7 +2732,7 @@ const Install = (() => {
   const android = /android/i.test(ua), samsung = /SamsungBrowser/i.test(ua), firefox = /firefox|fxios/i.test(ua);
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); prompt = e; scheduleRender(); });
   window.addEventListener('appinstalled', () => { prompt = null; toast('¡PIQUE quedó instalada! Buscá el ícono en tu pantalla'); scheduleRender(); });
-  const canShow = () => !standalone() && MODE !== 'tv' && /^https?:/.test(location.protocol);
+  const canShow = () => !standalone() && MODE !== 'tv' && /^https?:/.test(location.protocol) && (!!prompt || ios);
   const dismissed = () => { try { return localStorage.getItem('pq_inst_x') === '1'; } catch (e) { return false; } };
   async function run() {
     if (prompt) { prompt.prompt(); const r = await prompt.userChoice.catch(() => ({})); prompt = null; if (r.outcome === 'accepted') toast('Instalando PIQUE…'); scheduleRender(); return; }
@@ -2751,6 +2751,8 @@ const Install = (() => {
   }
   return { run, card, standalone, ios };
 })();
+/* ícono del splash: si el archivo no está publicado, se usa el que viene adentro de la app */
+(() => { const im = document.getElementById('spIc'); if (im) { const fb = () => { im.src = BRAND.i512; }; if (im.complete && !im.naturalWidth) fb(); else im.addEventListener('error', fb, { once: true }); } })();
 const IC_SHARE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
 const INSTALL_ACTIONS = {
   install: () => Install.run(),
@@ -4327,7 +4329,14 @@ const ACTIONS = {
   theme: el => { setTheme(el.dataset.v); render(); },
   bgmode: el => { BG.set(el.dataset.v); render(); },
   export: () => { const b = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'maxibasquet-cutralco-' + S.meta.code + '-' + new Date().toISOString().slice(0, 10) + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast('Respaldo descargado'); },
-  wipe: async () => { if (!(await confirmSheet('¿Borrar todo y empezar de cero en este dispositivo? Descargá un respaldo antes si lo necesitás.', 'Borrar todo', true))) return; const keep = { code: S.meta.code, pin: S.meta.pin }; S = { meta: Object.assign(blankMeta(), keep), games: {}, logos: {} }; commitMeta(); location.hash = '#/inicio'; }
+  wipe: async () => {
+    const cm = cloudMode();
+    if (!(await confirmSheet(cm ? `¿Borrar <b>equipos, fixture y partidos</b> de <b>${esc(S.meta.name)}</b>${isPractice() ? ' (práctica)' : ''}? Se borra en la nube, para todos los dispositivos. Descargá un respaldo antes si lo necesitás.` : '¿Borrar todo y empezar de cero en este dispositivo? Descargá un respaldo antes si lo necesitás.', 'Borrar todo', true))) return;
+    Object.values(S.games).forEach(g => { g.deleted = true; g.mts = Date.now(); Sync.push({ k: 'g', id: g.id }); });
+    const keep = { code: S.meta.code, pin: S.meta.pin, name: S.meta.name, sub: S.meta.sub, dates: S.meta.dates, venue: S.meta.venue, venues: S.meta.venues, days: S.meta.days, cats: S.meta.cats.map(c => Object.assign({}, c)) };
+    S.meta = Object.assign(blankMeta(), keep); S.meta.teams = [];
+    commitMeta(); toast('Listo: el torneo quedó vacío, con sus categorías, sedes y días'); location.hash = '#/inicio';
+  },
 };
 const CHANGES = {
   tLogo: async el => { const f = el.files[0]; if (!f || !isAdmin()) return; try { const d = await resizeImage(f, 384, true); S.logos.__torneo = { d, ts: Date.now() }; delete S.logos.__torneo_del; commitLogo('__torneo'); applyBrand(); toast('Logo del torneo actualizado'); } catch (x) { toast('No se pudo leer esa imagen', true); } },
@@ -4407,6 +4416,8 @@ $('#themeBtn').addEventListener('click', () => { setTheme(document.documentEleme
 matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if ((localStorage.getItem('tbf_theme') || 'auto') === 'auto') { setTheme('auto'); render(); } });
 function setupPWA() {
   // manifest e íconos son archivos reales del sitio (manifest.webmanifest, icon-*.png); si no están (archivo abierto suelto), se arman acá
+  const ml = document.querySelector('link[rel=manifest]');
+  if (ml && /^https?:/.test(location.protocol)) fetch(ml.href, { method: 'GET', cache: 'no-store' }).then(r => { if (!r.ok) throw 0; }).catch(() => { console.warn('Falta pq-manifest.webmanifest en el sitio: uso uno interno'); ml.remove(); setupPWA(); });
   if (!document.querySelector('link[rel=manifest]') || !/^https?:/.test(location.protocol)) {
     const man = { name: BRAND.name + ' · ' + S.meta.name, short_name: BRAND.name, start_url: location.pathname, display: 'standalone', background_color: '#0C1013', theme_color: '#0B2328', icons: [{ src: BRAND.i192, sizes: '192x192', type: 'image/png' }, { src: BRAND.i512, sizes: '512x512', type: 'image/png' }, { src: BRAND.mask, sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
     const old = document.querySelector('link[rel=manifest]'); if (old) old.remove();
@@ -4415,7 +4426,7 @@ function setupPWA() {
     const fi = document.createElement('link'); fi.rel = 'icon'; fi.href = BRAND.i192; document.head.appendChild(fi);
     const ai = document.createElement('link'); ai.rel = 'apple-touch-icon'; ai.href = BRAND.i180; document.head.appendChild(ai);
   }
-  if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('./sw.js').catch(() => { });
+  if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('./pq-sw.js').catch(() => { });
 }
 async function checkUpdate() {
   if (!/^https?:/.test(location.protocol)) return;
