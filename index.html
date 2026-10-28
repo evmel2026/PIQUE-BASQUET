@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="app-version" content="3.3.1">
+<meta name="app-version" content="3.3.2">
 <meta name="theme-color" content="#07A4B3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -598,6 +598,9 @@ body[data-bg="off"]{background:radial-gradient(60% 50% at 0% 0%,color-mix(in srg
 
 
 
+/* ajustes sin sesión */
+.login-card .lc-ic{flex:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--accSoft);color:var(--acc)}.login-card .lc-ic svg{width:22px;height:22px}
+.login-card .btn.pri{min-width:160px}
 /* jugadas 3D */
 .p3-ovl{position:fixed;inset:0;z-index:300;background:#05070A;color:#fff;overflow:hidden;animation:p3in .35s ease}
 @keyframes p3in{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:none}}
@@ -3626,7 +3629,7 @@ function vSettings() {
   if (!adm) {
     const cm = cloudMode(), who = cm && Sync.session ? Sync.session.user.email : '';
     const txt = op ? `Estás como operador: <b>${esc(op.name)}</b>${venueById(op.venue) ? ' · ' + esc(venueById(op.venue).name) : ' · todas las sedes'}` : cm && who ? `Entraste como <b>${esc(who)}</b>, pero ese email no figura en el personal de este torneo. Pedile a la administración que te agregue.` : 'Este dispositivo está en modo solo lectura';
-    return `<h1 class="h1" style="margin-bottom:14px">Ajustes</h1><div class="card"><div class="row" style="margin-bottom:10px">${IC.lock}<div>${txt}</div></div><p class="note" style="margin-bottom:12px">${op ? 'Podés cargar los partidos de tu sede. La configuración del torneo la maneja la administración.' : cm ? 'Para cargar partidos entrá con tu email y contraseña.' : 'Para cargar partidos ingresá tu PIN de operador o de administración.'}</p>${op || who ? `<button class="btn" data-act="lock">Cerrar sesión</button>` : `<button class="btn pri" data-act="unlock">${cm ? 'Ingresar' : 'Ingresar PIN'}</button>`}</div>${themeCard()}`;
+    return `<h1 class="h1" style="margin-bottom:14px">Ajustes</h1><div class="card login-card"><div class="row" style="margin-bottom:10px;gap:12px;align-items:center"><span class="lc-ic">${IC.lock}</span><div style="flex:1;min-width:0">${txt}</div></div><p class="note" style="margin-bottom:12px">${op ? 'Podés cargar los partidos de tu sede. La configuración del torneo la maneja la administración.' : cm ? 'Para cargar partidos entrá con tu email y contraseña.' : 'Para cargar partidos ingresá tu PIN de operador o de administración.'}</p>${op || who ? `<button class="btn" data-act="lock">Cerrar sesión</button>` : `<div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn pri" data-act="unlock">${cm ? 'Ingresar' : 'Ingresar PIN'}</button>${cm ? '<button class="btn ghost sm" data-act="cloudOff">Desconectar la nube en este dispositivo</button>' : ''}</div>`}</div>${themeCard()}`;
   }
   const links = Sync.links();
   return `<h1 class="h1" style="margin-bottom:14px">Ajustes</h1>
@@ -3750,7 +3753,7 @@ function loginSheet() {
    <div class="field"><label>Contraseña</label><input class="inp" id="lgP" type="password" autocomplete="current-password"></div>
    <div class="row" style="flex-wrap:wrap"><button class="btn ghost" id="lgNew">Crear mi contraseña</button><span class="sp"></span><button class="btn pri" id="lgOk">Entrar</button></div>`, s => {
     const go = async (fn, ok) => { const em = $('#lgE', s).value.trim(), pw = $('#lgP', s).value; if (!em || pw.length < 6) return toast('Email y contraseña (mínimo 6 caracteres)', true);
-      try { const r = await fn(em, pw); closeSheet(); toast(ok(r)); render(); } catch (x) { toast(/Invalid login/i.test(x.message || '') ? 'Email o contraseña incorrectos' : (x.message || 'No se pudo ingresar'), true); } };
+      try { const r = await fn(em, pw); closeSheet(); toast(ok(r)); render(); } catch (x) { const m = x.message || ''; toast(/Invalid login/i.test(m) ? 'Email o contraseña incorrectos' : /already registered|already exists/i.test(m) ? 'Ese email ya tiene contraseña: escribila y tocá Entrar' : /not confirmed/i.test(m) ? 'Falta confirmar el email: en Supabase desactivá "Confirm email" o abrí el mail de confirmación' : /signups? not allowed|disabled/i.test(m) ? 'En Supabase está desactivado el registro con email (Authentication → Email)' : /weak|at least/i.test(m) ? 'La contraseña es muy corta o simple: usá al menos 6 caracteres' : (m || 'No se pudo ingresar'), true); } };
     $('#lgOk', s).onclick = () => go((a, b) => Sync.login(a, b), st => st ? `Hola ${st.name || st.email}: ${st.role === 'admin' ? 'entraste como administración' : 'ya podés cargar' + (venueById(st.venue) ? ' en ' + venueById(st.venue).name : '')}` : 'Entraste, pero tu email no está en el personal de este torneo');
     $('#lgNew', s).onclick = () => go((a, b) => Sync.signup(a, b), d => d && d.session ? 'Contraseña creada' : 'Contraseña creada. Si te pide confirmar, revisá tu email.');
     $('#lgP', s).onkeydown = ev => { if (ev.key === 'Enter') $('#lgOk', s).click(); }; setTimeout(() => $('#lgE', s).focus(), 60);
